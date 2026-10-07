@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مسابقة اللغة العربية - Arabic Quiz Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+    body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
+    .card { background: #1e293b; width: 100%; max-width: 500px; border-radius: 24px; border: 1px solid #334155; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .title { font-size: 20px; font-weight: 800; color: #fbbf24; display: flex; align-items: center; gap: 8px; }
+    .btn-secondary { background: #334155; color: #cbd5e1; border: none; padding: 8px 14px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 13px; transition: 0.2s; }
+    .btn-secondary:hover { background: #475569; }
+    .info-bar { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px 16px; border-radius: 16px; margin-bottom: 12px; border: 1px solid #1e293b; }
+    .badge { color: #fbbf24; font-weight: 800; font-size: 18px; }
+    .high-score-bar { background: #1e1b4b; color: #a5b4fc; text-align: center; padding: 6px; border-radius: 12px; font-size: 13px; font-weight: 700; margin-bottom: 16px; border: 1px solid #3730a3; }
+    .progress-bg { background: #334155; height: 10px; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+    .progress-bar { background: linear-gradient(90deg, #f59e0b, #ef4444); height: 100%; width: 100%; transition: width 1s linear; }
+    .question { font-size: 19px; font-weight: 700; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center; line-height: 1.5; margin-bottom: 20px; color: #f1f5f9; }
+    .options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .option-btn { background: #334155; color: #fff; border: 2px solid transparent; padding: 14px 18px; border-radius: 16px; font-size: 15px; font-weight: 700; text-align: right; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+    .option-btn:hover { border-color: #6366f1; background: #3e4c5e; }
+    .option-btn.correct { background: #059669 !important; border-color: #34d399 !important; }
+    .option-btn.wrong { background: #dc2626 !important; border-color: #f87171 !important; }
+    .result-box { text-align: center; padding: 20px 0; }
+    .score-number { font-size: 54px; font-weight: 900; color: #fbbf24; margin: 10px 0; }
+    .btn-primary { background: #6366f1; color: white; border: none; padding: 14px 32px; border-radius: 16px; font-size: 16px; font-weight: 800; cursor: pointer; width: 100%; transition: 0.2s; }
+    .btn-primary:hover { background: #4f46e5; }
+    .input-field { width: 100%; background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 12px; color: white; margin-top: 6px; margin-bottom: 12px; font-size: 14px; }
+    .admin-list-item { background: #0f172a; padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+    .set-select { width: 100%; background: #0f172a; color: #fbbf24; border: 1px solid #334155; padding: 10px; border-radius: 12px; font-weight: 700; margin-bottom: 16px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="header">
+      <div class="title">🏆 مسابقة العربية</div>
+      <div style="display: flex; gap: 8px;">
+        <button id="sound-btn" onclick="toggleSound()" class="btn-secondary">🔊</button>
+        <button id="admin-btn" onclick="toggleAdmin()" class="btn-secondary">⚙️ لوحة التحكم</button>
+      </div>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <div id="quiz-view">
+      <div class="high-score-bar">
+        👑 أعلى نتيجة (Highest Score): <span id="high-score-val" style="color:#fbbf24;">0</span>
+      </div>
+
+      <div>
+        <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 4px;">اختر المجموعة (Set):</label>
+        <select id="set-selector" onchange="changeSet()" class="set-select">
+          <option value="1">المجموعة 1 (Set 1)</option>
+        </select>
+      </div>
+
+      <div class="info-bar">
+        <div>النقاط: <span id="score" class="badge">0</span> 🌟</div>
+        <div style="font-size: 13px; color: #94a3b8;">السؤال <span id="q-num" style="color:white">1</span> / <span id="q-total">0</span></div>
+      </div>
+
+      <div class="progress-bg">
+        <div id="timer-bar" class="progress-bar"></div>
+      </div>
+
+      <div id="game-box">
+        <div id="question-text" class="question">جاري تحميل الأسئلة...</div>
+        <div id="options-box" class="options"></div>
+      </div>
+
+      <div id="result-box" class="result-box hidden">
+        <div style="font-size: 50px;">🎉</div>
+        <h2>ممتاز! أكملت المجموعة بنجاح</h2>
+        <p style="color: #94a3b8; font-size: 14px; margin-top: 6px;">مجموع النقاط النهائي:</p>
+        <div id="final-score" class="score-number">0</div>
+        <button onclick="restartGame()" class="btn-primary">إعادة اللعب 🔄</button>
+      </div>
+    </div>
+
+    <!-- ADMIN VIEW -->
+    <div id="admin-view" class="hidden">
+      <h3 style="margin-bottom: 12px; color: #fbbf24;">إضافة سؤال جديد</h3>
+      <form onsubmit="addQuestion(event)">
+        <label style="font-size: 12px; color: #cbd5e1;">المجموعة (Set Number):</label>
+        <input type="number" id="add-set" value="1" min="1" required class="input-field">
+
+        <label style="font-size: 12px; color: #cbd5e1;">السؤال (ചോദ്യം):</label>
+        <input type="text" id="add-q" required class="input-field">
+
+        <label style="font-size: 12px; color: #cbd5e1;">الخيارات (4 ഓപ്ഷനുകൾ):</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <input type="text" id="add-o1" placeholder="الخيار 1" required class="input-field">
+          <input type="text" id="add-o2" placeholder="الخيار 2" required class="input-field">
+          <input type="text" id="add-o3" placeholder="الخيار 3" required class="input-field">
+          <input type="text" id="add-o4" placeholder="الخيار 4" required class="input-field">
+        </div>
+
+        <label style="font-size: 12px; color: #cbd5e1;">الإجابة الصحيحة (ശരിയായ നമ്പർ):</label>
+        <select id="add-correct" class="input-field">
+          <option value="0">الخيار 1</option>
+          <option value="1">الخيار 2</option>
+          <option value="2">الخيار 3</option>
+          <option value="3">الخيار 4</option>
+        </select>
+
+        <button type="submit" class="btn-primary" style="background: #059669; margin-top: 8px;">حفظ السؤال ➕</button>
+      </form>
+
+      <h4 style="margin: 20px 0 10px 0; color: #cbd5e1; font-size: 14px;">الأسئلة الحالية:</h4>
+      <div id="admin-list" style="max-height: 180px; overflow-y: auto;"></div>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_PASSWORD = "1234";
+
+    // Image Source Questions Array (20 Questions)
+    const defaultData = [
+      { set: 1, question: "إختر غير متجانس: (أخضر - أكبر - أحمر - أزرق)", options: ["أخضر", "أكبر", "أحمر", "أزرق"], correct: 1 },
+      { set: 1, question: "أكتب إسم الشكل الهندسية؟ (⚪)", options: ["مربع", "مثلث", "دائرة", "مستطيل"], correct: 2 },
+      { set: 1, question: "إختر الشاذ: (حقيبة - مظلة - زجاجة - خبيزة)", options: ["حقيبة", "مظلة", "زجاجة", "خبيزة"], correct: 3 },
+      { set: 1, question: "ماءٌ جمعُهُ .........؟", options: ["مياه", "أمواه", "ماءات", "مُؤُوه"], correct: 0 },
+      { set: 1, question: "ما إسم شهر أغسطس في اللغة العربية؟", options: ["تموز", "آب", "أيلول", "كانون"], correct: 1 },
+      { set: 1, question: "إختر صحيحاً من الآتية:", options: ["مائة", "مهة", "معة", "مأئة"], correct: 0 },
+      { set: 1, question: "ميّز الشاذ: (التنورة - الإزار - الغسالة - البنطلون)", options: ["التنورة", "الإزار", "الغسالة", "البنطلون"], correct: 2 },
+      { set: 1, question: "ما يوم بين يوم الخميس ويوم السبت؟", options: ["يوم الجمعة", "يوم الأحد", "يوم الثلاثاء", "يوم الأربعاء"], correct: 0 },
+      { set: 1, question: "لغة الضاد ما هي؟", options: ["لغة الإنجليزية", "لغة العربية", "لغة الأردية", "لغة المليالم"], correct: 1 },
+      { set: 1, question: "ما هو لون الغراب؟", options: ["أبيض", "أحمر", "أسود", "أصفر"], correct: 2 },
+      { set: 1, question: "أكتب إسم الشكل الهندسية؟ (🔺)", options: ["مربع", "مثلث", "دائرة", "مكعب"], correct: 1 },
+      { set: 1, question: "(قاررب - ماء) ، (سيارة - شارع) ، (قطار - ...)؟", options: ["سكة الحديد", "المطار", "الميناء", "السماء"], correct: 0 },
+      { set: 1, question: "أمام × وراء ، تحت × .........؟", options: ["فوق", "يمين", "يسار", "داخل"], correct: 0 },
+      { set: 1, question: "شجرةٌ جمعُها .........؟", options: ["أشجار", "شجيرات", "شجر", "شجائر"], correct: 0 },
+      { set: 1, question: "في الأسبوع ......... أيام؟", options: ["خمسة", "ستة", "سبعة", "ثمانية"], correct: 2 },
+      { set: 1, question: "ما هي مترادف بَيْت؟", options: ["منزل / دار", "مسجد", "مدرسة", "مستشفى"], correct: 0 },
+      { set: 1, question: "ماذا مَسْكَنُ الكَلْبِ؟", options: ["وجار", "عش", "عرين", "جحر"], correct: 0 },
+      { set: 1, question: "ما هو الشاذ: (موز - بامية - تفاح - عنب)", options: ["موز", "بامية", "تفاح", "عنب"], correct: 1 },
+      { set: 1, question: "أكتب إسم هذه الصورة؟ (👔)", options: ["قميص", "بنطال", "ثوب", "حذاء"], correct: 0 },
+      { set: 1, question: "(عيد - عيد سعيد) ، (ميلاد - ميلاد سعيد) ، (أونم - ....)", options: ["أونم سعيد", "أونم مبارك", "عيد أونم", "أونم طيب"], correct: 0 }
+    ];
+
+    let allQuestions = JSON.parse(localStorage.getItem('quiz_data_v5')) || defaultData;
+    let highScore = parseInt(localStorage.getItem('quiz_high_score')) || 0;
+    
+    let currentSet = 1;
+    let activeQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 30;
+    let soundEnabled = true;
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+      if (!soundEnabled) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'correct') {
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'wrong') {
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(180, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-btn').innerText = soundEnabled ? '🔊' : '🔇';
+    }
+
+    function saveStorage() {
+      localStorage.setItem('quiz_data_v5', JSON.stringify(allQuestions));
+    }
+
+    function updateHighScoreUI() {
+      document.getElementById('high-score-val').innerText = highScore;
+    }
+
+    function updateSetDropdown() {
+      const select = document.getElementById('set-selector');
+      select.innerHTML = '';
+      
+      const sets = [...new Set(allQuestions.map(q => q.set || 1))];
+      if (sets.length === 0) sets.push(1);
+      sets.sort((a,b) => a - b);
+
+      sets.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.innerText = `المجموعة ${s} (Set ${s})`;
+        if (s === currentSet) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function filterQuestionsBySet() {
+      activeQuestions = allQuestions.filter(q => (q.set || 1) === parseInt(currentSet)).slice(0, 20);
+    }
+
+    function changeSet() {
+      currentSet = parseInt(document.getElementById('set-selector').value);
+      restartGame();
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timeLeft = 30;
+      updateTimerUI();
+      timer = setInterval(() => {
+        timeLeft--;
+        updateTimerUI();
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          handleAnswer(-1, null);
+        }
+      }, 1000);
+    }
+
+    function updateTimerUI() {
+      const bar = document.getElementById('timer-bar');
+      bar.style.width = (timeLeft / 30 * 100) + '%';
+    }
+
+    function loadQuestion() {
+      filterQuestionsBySet();
+
+      if (activeQuestions.length === 0) {
+        document.getElementById('question-text').innerText = "لا توجد أسئلة في هذه المجموعة حالياً.";
+        document.getElementById('options-box').innerHTML = '';
+        document.getElementById('q-num').innerText = 0;
+        document.getElementById('q-total').innerText = 0;
+        return;
+      }
+
+      document.getElementById('q-num').innerText = currentIndex + 1;
+      document.getElementById('q-total').innerText = activeQuestions.length;
+
+      const q = activeQuestions[currentIndex];
+      document.getElementById('question-text').innerText = q.question;
+
+      const box = document.getElementById('options-box');
+      box.innerHTML = '';
+      q.options.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = `<span>${opt}</span><span style="opacity:0.5; font-size:12px;">#${i+1}</span>`;
+        btn.onclick = () => handleAnswer(i, btn);
+        box.appendChild(btn);
+      });
+
+      startTimer();
+    }
+
+    function handleAnswer(index, btn) {
+      clearInterval(timer);
+      const correctIdx = activeQuestions[currentIndex].correct;
+      const allBtns = document.querySelectorAll('.option-btn');
+      allBtns.forEach(b => b.disabled = true);
+
+      if (index === correctIdx) {
+        if (btn) btn.classList.add('correct');
+        playSound('correct');
+        score += 10 + timeLeft;
+        document.getElementById('score').innerText = score;
+      } else {
+        if (btn) btn.classList.add('wrong');
+        if (allBtns[correctIdx]) allBtns[correctIdx].classList.add('correct');
+        playSound('wrong');
+      }
+
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('quiz_high_score', highScore);
+        updateHighScoreUI();
+      }
+
+      setTimeout(() => {
+        currentIndex++;
+        if (currentIndex < activeQuestions.length) {
+          loadQuestion();
+        } else {
+          showResults();
+        }
+      }, 1400);
+    }
+
+    function showResults() {
+      document.getElementById('game-box').classList.add('hidden');
+      document.getElementById('result-box').classList.remove('hidden');
+      document.getElementById('final-score').innerText = score;
+    }
+
+    function restartGame() {
+      score = 0;
+      currentIndex = 0;
+      document.getElementById('score').innerText = 0;
+      document.getElementById('result-box').classList.add('hidden');
+      document.getElementById('game-box').classList.remove('hidden');
+      updateSetDropdown();
+      updateHighScoreUI();
+      loadQuestion();
+    }
+
+    function toggleAdmin() {
+      const qView = document.getElementById('quiz-view');
+      const aView = document.getElementById('admin-view');
+      const btn = document.getElementById('admin-btn');
+
+      if (aView.classList.contains('hidden')) {
+        const pwd = prompt("أدخل كلمة المرور للوحة التحكم (Admin Password):");
+        if (pwd !== ADMIN_PASSWORD) {
+          alert("كلمة المرور غير صحيحة!");
+          return;
+        }
+
+        aView.classList.remove('hidden');
+        qView.classList.add('hidden');
+        btn.innerText = "🎮 اللعبة";
+        renderAdminList();
+        clearInterval(timer);
+      } else {
+        aView.classList.add('hidden');
+        qView.classList.remove('hidden');
+        btn.innerText = "⚙️ لوحة التحكم";
+        restartGame();
+      }
+    }
+
+    function addQuestion(e) {
+      e.preventDefault();
+      const setNum = parseInt(document.getElementById('add-set').value) || 1;
+      const q = document.getElementById('add-q').value;
+      const opts = [
+        document.getElementById('add-o1').value,
+        document.getElementById('add-o2').value,
+        document.getElementById('add-o3').value,
+        document.getElementById('add-o4').value
+      ];
+      const correct = parseInt(document.getElementById('add-correct').value);
+
+      allQuestions.push({ set: setNum, question: q, options: opts, correct });
+      saveStorage();
+      e.target.reset();
+      document.getElementById('add-set').value = setNum;
+      renderAdminList();
+      alert("تم الحفظ بنجاح!");
+    }
+
+    function deleteQuestion(globalIdx) {
+      if (confirm("هل تريد حذف هذا السؤال؟")) {
+        allQuestions.splice(globalIdx, 1);
+        saveStorage();
+        renderAdminList();
+      }
+    }
+
+    function renderAdminList() {
+      const list = document.getElementById('admin-list');
+      list.innerHTML = '';
+      allQuestions.forEach((q, idx) => {
+        const item = document.createElement('div');
+        item.className = 'admin-list-item';
+        item.innerHTML = `
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">[Set ${q.set || 1}] ${q.question}</span>
+          <button onclick="deleteQuestion(${idx})" style="background:#dc2626; color:white; border:none; padding:4px 8px; border-radius:6px; cursor:pointer;">حذف</button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    updateHighScoreUI();
+    updateSetDropdown();
+    loadQuestion();
+  </script>
+</body>
+</html>
