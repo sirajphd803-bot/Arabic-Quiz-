@@ -202,7 +202,7 @@
     ];
 
     // LocalStorage keyquiz_data_v8 ആയി മാറ്റിയിട്ടുണ്ട് (പുതിയ ഡാറ്റ ഓട്ടോമാറ്റിക്കായി അപ്ഡേറ്റ് ആകാൻ)
-    let allQuestions = JSON.parse(localStorage.getItem('quiz_data_v8')) || defaultData;
+    let allQuestions = JSON.parse(localStorage.getItem('quiz_data_v9')) || defaultData;
     let highScore = parseInt(localStorage.getItem('quiz_high_score')) || 0;
     
     let currentSet = 1;
@@ -243,7 +243,7 @@
     }
 
     function saveStorage() {
-      localStorage.setItem('quiz_data_v8', JSON.stringify(allQuestions));
+      localStorage.setItem('quiz_data_v9', JSON.stringify(allQuestions));
     }
 
     function updateHighScoreUI() {
